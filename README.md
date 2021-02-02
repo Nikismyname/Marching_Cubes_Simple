@@ -5,3 +5,8 @@ From here there are three major optimizations that can be done but will not be p
 1) Do not create all vertecies on every cube. 
 2) Dots muthitreaded meshing,
 3) Mesing on the GPU
+
+## Controls
+Right mouse button hold to rotate.
+Click on mesh to deform. 
+Shift click on mesh to deform in the other direction.
