@@ -10,3 +10,5 @@ From here there are three major optimizations that can be done but will not be p
 Right mouse button hold to rotate.
 Click on mesh to deform. 
 Shift click on mesh to deform in the other direction.
+
+![MC](https://github.com/Nikismyname/Marching_Cubes_Simple/blob/main/Resources/MC.png)
