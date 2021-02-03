@@ -99,6 +99,7 @@
                 {
                     Vector3 point = info.point;
 
+                    /// we create a 6 x 6 x 6 cube arount the intersection point so we can get all vertecies that in that cube  
                     float xMin = point.x - 3;
                     float xMax = point.x + 3;
 
@@ -108,36 +109,49 @@
                     float zMin = point.z - 3;
                     float zMax = point.z + 3;
 
-                    List<int3> affectedVerts = new List<int3>();
-                    for (int x = (int)math.floor(xMin); x <= (int)math.ceil(xMax); x++)
+                    HashSet<int3> chunkByGridIndex = new HashSet<int3>(); /// this will hold the grid indecies of affected chunks so we can selectively update only those
+                    for (int x = (int)math.floor(xMin); x <= (int)math.ceil(xMax); x++) /// this 3 fors fors loop over the whole numbers in the range of out 6 x 6 x 6 cube
                         for (int y = (int)math.floor(yMin); y <= (int)math.ceil(yMax); y++)
                             for (int z = (int)math.floor(zMin); z <= (int)math.ceil(zMax); z++)
-                                if ((x >= xMin && x <= xMax) && (y >= yMin && y <= yMax) && (z >= zMin && z <= zMax))
-                                    if ((x >= 0 && x <= this.length - 1) && (y >= 0 && y <= this.length - 1) && (z >= 0 && z <= this.length - 1))
-                                        if (math.distance(new int3(x, y, z), point) < 3)
-                                            affectedVerts.Add(new int3(x, y, z));
-
-                    HashSet<int3> chunkByGridIndex = new HashSet<int3>();
-
-                    foreach (var vert in affectedVerts)
-                    {
-                        /// offsetting the vertecies scalar value with amount proportianal to the distance so that we get a spherical extrusion
-                        float dist = math.distance(vert, point); /// TODO: Optimize the calculation of dist to once - it is being calculated twice in this method!
-                        float change = 3 / dist * directionMulty * Time.deltaTime;
-                        float newAmount = verts[vert.x, vert.y, vert.z] - change;
-                        newAmount = math.clamp(newAmount, -1f, 1f);
-                        verts[vert.x, vert.y, vert.z] = newAmount;
-                        
-                        /// collecting all the unique grid positions in which a vertex has changed so we can selectively update those only
-                        int x = (int)math.floor((float)vert.x / this.chunkSize);
-                        int y = (int)math.floor((float)vert.y / this.chunkSize);
-                        int z = (int)math.floor((float)vert.z / this.chunkSize);
-                        chunkByGridIndex.Add(new int3(x, y, z));
-                    }
+                                if ((x >= xMin && x <= xMax) && (y >= yMin && y <= yMax) && (z >= zMin && z <= zMax)) /// just double checking the numbers are in range to exclude the min and max whole numbers if they are not in range
+                                    if ((x >= 0 && x <= this.length - 1) && (y >= 0 && y <= this.length - 1) && (z >= 0 && z <= this.length - 1)) /// checking that the indecies are in range, otherwise we will get out of bounds of the vert array
+                                    {
+                                        float distance = math.distance(new int3(x, y, z), point); 
+                                        if (distance < 3) /// by liniting the distance uniformly around the intersection point we ge a circular tunnels 
+                                        {
+                                            int3 vert = new int3(x, y, z);
+                                            this.ModifyVertArrayValues(vert, distance, directionMulty);
+                                            int3 chunkInds = this.GetAffectedChunkIndecies(vert);
+                                            chunkByGridIndex.Add(chunkInds);
+                                        }
+                                    }
 
                     GenerateMesh(chunkByGridIndex);
                 }
             }
+        }
+
+        /// <summary>
+        /// offsetting the vertecie scalar value with amount proportianal to the distance so that we get a spherical extrusion
+        /// </summary>
+        private void ModifyVertArrayValues(int3 vert, float dist, int directionMulty)
+        {
+            float change = 3 / dist * directionMulty * Time.deltaTime;
+            float newAmount = verts[vert.x, vert.y, vert.z] - change;
+            newAmount = math.clamp(newAmount, -1f, 1f);
+            verts[vert.x, vert.y, vert.z] = newAmount;
+        }
+
+        /// <summary>
+        /// getting the unique grid position in which a vertex has changed so we can selectively update those only
+        /// </summary>
+        private int3 GetAffectedChunkIndecies(int3 vert)
+        {
+            int chunkGridX = (int)math.floor((float)vert.x / this.chunkSize);
+            int chunkGridY = (int)math.floor((float)vert.y / this.chunkSize);
+            int chunkGridZ = (int)math.floor((float)vert.z / this.chunkSize);
+
+            return new int3(chunkGridX, chunkGridY, chunkGridZ);
         }
     }
 }
