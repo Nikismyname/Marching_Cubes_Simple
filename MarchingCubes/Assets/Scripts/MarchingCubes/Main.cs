@@ -88,6 +88,10 @@
             }
         }
 
+        /// <summary>
+        /// All the update does is check for left mouse click and defeorms the terrain. 
+        /// If shift is pressed it deforms it in the other direction
+        /// </summary>
         private void Update()
         {
             if (Input.GetMouseButton(0))
