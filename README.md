@@ -6,6 +6,9 @@ From here there are three major optimizations that can be done but will not be p
 2) Dots multithreading meshing,
 3) Meshing on the GPU
 
+## This is based on
+http://paulbourke.net/geometry/polygonise/
+
 ## Controls
 Right mouse button hold to rotate.
 Click on mesh to deform. 
